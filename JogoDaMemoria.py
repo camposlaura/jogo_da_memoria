@@ -3,23 +3,22 @@ import sys
 import time
 import random
 
-##
-# Funcoes uteis
-##
 
-# Limpa a tela.
+# FUNCOES UTEIS
+
+
 def limpaTela():
-    
+    """ Limpa a tela. """
+
     os.system('cls' if os.name == 'nt' else 'clear')
 
-##
-# Funcoes de manipulacao do tabuleiro
-##
 
-# Imprime estado atual do tabuleiro
+# FUNCOES DE MANIPULACAO DO TABULEIRO
+
+
 def imprimeTabuleiro(tabuleiro):
-
-    # Limpa a tela
+    """ Imprime estado atual do tabuleiro. """
+    
     limpaTela()
 
     # Imprime coordenadas horizontais
@@ -56,6 +55,7 @@ def imprimeTabuleiro(tabuleiro):
 
                 # Sim, imprime valor.
                 print("{0:2d} ".format(tabuleiro[i][j]), end="")
+
             else:
 
                 # Nao, imprime '?'
@@ -63,10 +63,10 @@ def imprimeTabuleiro(tabuleiro):
 
         print("\n")
 
-# Cria um novo tabuleiro com pecas aleatorias. 
-# 'dim' eh a dimensao do tabuleiro, necessariamente
-# par.
+
 def novoTabuleiro(dim):
+    """ Cria um novo tabuleiro com pecas aleatorias.
+        'dim' eh a dimensao do tabuleiro, necessariamente par. """
 
     # Cria um tabuleiro vazio.
     tabuleiro = []
@@ -79,8 +79,8 @@ def novoTabuleiro(dim):
 
         tabuleiro.append(linha)
 
-    # Cria uma lista de todas as posicoes do tabuleiro. Util para
-    # sortearmos posicoes aleatoriamente para as pecas.
+    # Cria uma lista de todas as posicoes do tabuleiro. 
+    # Util para sortearmos posicoes aleatoriamente para as pecas.
     posicoesDisponiveis = []
     for i in range(0, dim):
 
@@ -88,10 +88,10 @@ def novoTabuleiro(dim):
 
             posicoesDisponiveis.append((i, j))
 
-    # Varre todas as pecas que serao colocadas no 
-    # tabuleiro e posiciona cada par de pecas iguais
-    # em posicoes aleatorias.
+    # Varre todas as pecas que serao colocadas no tabuleiro e posiciona 
+    # cada par de pecas iguais em posicoes aleatorias.
     for j in range(0, dim // 2):
+
         for i in range(1, dim + 1):
 
             # Sorteio da posicao da segunda peca com valor 'i'
@@ -110,59 +110,67 @@ def novoTabuleiro(dim):
 
     return tabuleiro
 
-# Abre (revela) peca na posicao (i, j). Se posicao ja esta
-# aberta ou se ja foi removida, retorna False. Retorna True
-# caso contrario.
+
 def abrePeca(tabuleiro, i, j):
+    """ Abre (revela) peca na posicao (i, j).
+        Se posicao ja esta aberta ou se ja foi removida, retorna False.
+        Caso contrario, retorna True. """
 
     if tabuleiro[i][j] == '-':
         return False
+    
     elif tabuleiro[i][j] < 0:
         tabuleiro[i][j] = -tabuleiro[i][j]
         return True
 
     return False
 
-# Fecha peca na posicao (i, j). Se posicao ja esta
-# fechada ou se ja foi removida, retorna False. Retorna True
-# caso contrario.
+
 def fechaPeca(tabuleiro, i, j):
+    """ Fecha peca na posicao (i, j).
+        Se posicao ja esta fechada ou se ja foi removida, retorna False.
+        Caso contrario, retorna True. """
 
     if tabuleiro[i][j] == '-':
         return False
+    
     elif tabuleiro[i][j] > 0:
         tabuleiro[i][j] = -tabuleiro[i][j]
         return True
 
     return False
 
-# Remove peca na posicao (i, j). Se posicao ja esta
-# removida, retorna False. Retorna True
-# caso contrario.
+
 def removePeca(tabuleiro, i, j):
+    """ Remove peca na posicao (i, j).
+        Se posicao ja esta removida, retorna False.
+        Caso contrario, retorna True. """
 
     if tabuleiro[i][j] == '-':
         return False
+    
     else:
         tabuleiro[i][j] = "-"
         return True
 
-## 
-# Funcoes de manipulacao do placar
-##
 
-# Cria um novo placar zerado.
+# FUNCOES DE MANIPULACAO DO PLACAR
+
+
 def novoPlacar(nJogadores):
+    """ Cria um novo placar zerado """
 
     return [0] * nJogadores
 
-# Adiciona um ponto no placar para o jogador especificado.
+
 def incrementaPlacar(placar, jogador):
+    """ Adiciona um ponto no placar para o jogador especificado """
 
     placar[jogador] = placar[jogador] + 1
 
-# Imprime o placar atual.
+
 def imprimePlacar(placar):
+    """ Imprime o placar atual """
 
     nJogadores = len(placar)
 
@@ -171,31 +179,33 @@ def imprimePlacar(placar):
     for i in range(0, nJogadores):
         print("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
 
-##
-# Funcoes de interacao com o usuario
-#
 
-# Imprime informacoes basicas sobre o estado atual da partida.
+# FUNCOES DE INTERACAO COM O USUARIO
+
+
 def imprimeStatus(tabuleiro, placar, vez):
+    """ Imprime informacoes basicas sobre o estado atual da partida. """
 
-        imprimeTabuleiro(tabuleiro)
-        print('\n')
+    imprimeTabuleiro(tabuleiro)
+    print('\n')
 
-        imprimePlacar(placar)
-        print('\n')
-        print('\n')
+    imprimePlacar(placar)
+    print('\n\n')
 
-        print("Vez do Jogador {0}.\n".format(vez + 1))
+    print("Vez do Jogador {0}.\n".format(vez + 1))
 
-# Le um coordenadas de uma peca. Retorna uma tupla do tipo (i, j)
-# em caso de sucesso, ou False em caso de erro.
+
 def leCoordenada(dim):
+    """ Le um coordenadas de uma peca.
+        Retorna uma tupla do tipo (i, j) em caso de sucesso,
+        ou False em caso de erro """
 
     inputDoUsuario = input("Especifique uma peca: ")
 
     try:
         i = int(inputDoUsuario.split(' ')[0])
         j = int(inputDoUsuario.split(' ')[1])
+
     except ValueError:
         print("Coordenadas invalidas! Use o formato \"i j\" (sem aspas),")
         print("onde i e j sao inteiros maiores ou iguais a 0 e menores que {0}".format(dim))
@@ -203,24 +213,22 @@ def leCoordenada(dim):
         return False
 
     if i < 0 or i >= dim:
-
         print("Coordenada i deve ser maior ou igual a zero e menor que {0}".format(dim))
         input("Pressione <enter> para continuar...")
         return False
 
     if j < 0 or j >= dim:
-
         print("Coordenada j deve ser maior ou igual a zero e menor que {0}".format(dim))
         input("Pressione <enter> para continuar...")
         return False
 
     return (i, j)
 
-##
-# Parametros da partida
-##
 
-# Tamanho (da lateral) do tabuleiro. NECESSARIAMENTE PAR E MENOR QUE 10!
+# PARAMETROS DA PARTIDA
+
+
+# Tamanho (da lateral) do tabuleiro. Necessariamente par e menor que 10!
 dim = 4
 
 # Numero de jogadores
@@ -229,9 +237,9 @@ nJogadores = 2
 # Numero total de pares de pecas
 totalDePares = dim**2 / 2
 
-##
-# Programa principal
-##
+
+# PROGRAMA PRINCIPAL
+
 
 # Cria um novo tabuleiro para a partida
 tabuleiro = novoTabuleiro(dim)
@@ -239,8 +247,7 @@ tabuleiro = novoTabuleiro(dim)
 # Cria um novo placar zerado
 placar = novoPlacar(nJogadores)
 
-# Partida continua enquanto ainda ha pares de pecas a 
-# casar.
+# Partida continua enquanto ainda ha pares de pecas a casar.
 paresEncontrados = 0
 vez = 0
 while paresEncontrados < totalDePares:
@@ -305,6 +312,7 @@ while paresEncontrados < totalDePares:
         removePeca(tabuleiro, i2, j2)
 
         time.sleep(5)
+
     else:
 
         print("Pecas nao casam!")
