@@ -24,23 +24,23 @@ def imprimeTabuleiro(tabuleiro):
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
-    sys.stdout.write("     ")
+    print("     ", end="")
     for i in range(0, dim):
-        sys.stdout.write("{0:2d} ".format(i))
+        print("{0:2d} ".format(i), end="")
 
-    sys.stdout.write("\n")
+    print("\n")
 
     # Imprime separador horizontal
-    sys.stdout.write("-----")
+    print("-----", end="")
     for i in range(0, dim):
-        sys.stdout.write("---")
+        print("---", end="")
 
-    sys.stdout.write("\n")
+    print("\n")
 
     for i in range(0, dim):
 
         # Imprime coordenadas verticais
-        sys.stdout.write("{0:2d} | ".format(i))
+        print("{0:2d} | ".format(i), end="")
 
         # Imprime conteudo da linha 'i'
         for j in range(0, dim):
@@ -49,19 +49,19 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
-                sys.stdout.write(" - ")
+                print(" - ", end="")
 
             # Peca esta levantada?
             elif tabuleiro[i][j] >= 0:
 
                 # Sim, imprime valor.
-                sys.stdout.write("{0:2d} ".format(tabuleiro[i][j]))
+                print("{0:2d} ".format(tabuleiro[i][j]), end="")
             else:
 
                 # Nao, imprime '?'
-                sys.stdout.write(" ? ")
+                print(" ? ", end="")
 
-        sys.stdout.write("\n")
+        print("\n")
 
 # Cria um novo tabuleiro com pecas aleatorias. 
 # 'dim' eh a dimensao do tabuleiro, necessariamente
@@ -91,7 +91,7 @@ def novoTabuleiro(dim):
     # Varre todas as pecas que serao colocadas no 
     # tabuleiro e posiciona cada par de pecas iguais
     # em posicoes aleatorias.
-    for j in range(0, dim / 2):
+    for j in range(0, dim // 2):
         for i in range(1, dim + 1):
 
             # Sorteio da posicao da segunda peca com valor 'i'
@@ -166,10 +166,10 @@ def imprimePlacar(placar):
 
     nJogadores = len(placar)
 
-    print "Placar:"
-    print "---------------------"
+    print("Placar:")
+    print("---------------------")
     for i in range(0, nJogadores):
-        print "Jogador {0}: {1:2d}".format(i + 1, placar[i])
+        print("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
 
 ##
 # Funcoes de interacao com o usuario
@@ -179,39 +179,39 @@ def imprimePlacar(placar):
 def imprimeStatus(tabuleiro, placar, vez):
 
         imprimeTabuleiro(tabuleiro)
-        sys.stdout.write('\n')
+        print('\n')
 
         imprimePlacar(placar)
-        sys.stdout.write('\n')
-        sys.stdout.write('\n')
+        print('\n')
+        print('\n')
 
-        print "Vez do Jogador {0}.\n".format(vez + 1)
+        print("Vez do Jogador {0}.\n".format(vez + 1))
 
 # Le um coordenadas de uma peca. Retorna uma tupla do tipo (i, j)
 # em caso de sucesso, ou False em caso de erro.
 def leCoordenada(dim):
 
-    input = raw_input("Especifique uma peca: ")
+    inputDoUsuario = input("Especifique uma peca: ")
 
     try:
-        i = int(input.split(' ')[0])
-        j = int(input.split(' ')[1])
+        i = int(inputDoUsuario.split(' ')[0])
+        j = int(inputDoUsuario.split(' ')[1])
     except ValueError:
-        print "Coordenadas invalidas! Use o formato \"i j\" (sem aspas),"
-        print "onde i e j sao inteiros maiores ou iguais a 0 e menores que {0}".format(dim)
-        raw_input("Pressione <enter> para continuar...")
+        print("Coordenadas invalidas! Use o formato \"i j\" (sem aspas),")
+        print("onde i e j sao inteiros maiores ou iguais a 0 e menores que {0}".format(dim))
+        input("Pressione <enter> para continuar...")
         return False
 
     if i < 0 or i >= dim:
 
-        print "Coordenada i deve ser maior ou igual a zero e menor que {0}".format(dim)
-        raw_input("Pressione <enter> para continuar...")
+        print("Coordenada i deve ser maior ou igual a zero e menor que {0}".format(dim))
+        input("Pressione <enter> para continuar...")
         return False
 
     if j < 0 or j >= dim:
 
-        print "Coordenada j deve ser maior ou igual a zero e menor que {0}".format(dim)
-        raw_input("Pressione <enter> para continuar...")
+        print("Coordenada j deve ser maior ou igual a zero e menor que {0}".format(dim))
+        input("Pressione <enter> para continuar...")
         return False
 
     return (i, j)
@@ -261,8 +261,8 @@ while paresEncontrados < totalDePares:
         # Testa se peca ja esta aberta (ou removida)
         if abrePeca(tabuleiro, i1, j1) == False:
 
-            print "Escolha uma peca ainda fechada!"
-            raw_input("Pressione <enter> para continuar...")
+            print("Escolha uma peca ainda fechada!")
+            input("Pressione <enter> para continuar...")
             continue
 
         break 
@@ -283,8 +283,8 @@ while paresEncontrados < totalDePares:
         # Testa se peca ja esta aberta (ou removida)
         if abrePeca(tabuleiro, i2, j2) == False:
 
-            print "Escolha uma peca ainda fechada!"
-            raw_input("Pressione <enter> para continuar...")
+            print("Escolha uma peca ainda fechada!")
+            input("Pressione <enter> para continuar...")
             continue
 
         break 
@@ -292,12 +292,12 @@ while paresEncontrados < totalDePares:
     # Imprime status do jogo
     imprimeStatus(tabuleiro, placar, vez)
 
-    print "Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2)
+    print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
 
     # Pecas escolhidas sao iguais?
     if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
 
-        print "Pecas casam! Ponto para o jogador {0}.".format(vez + 1)
+        print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
         
         incrementaPlacar(placar, vez)
         paresEncontrados = paresEncontrados + 1
@@ -307,7 +307,7 @@ while paresEncontrados < totalDePares:
         time.sleep(5)
     else:
 
-        print "Pecas nao casam!"
+        print("Pecas nao casam!")
         
         time.sleep(3)
 
@@ -325,14 +325,12 @@ for i in range(0, nJogadores):
 
 if len(vencedores) > 1:
 
-    sys.stdout.write("Houve empate entre os jogadores ")
+    print("Houve empate entre os jogadores ")
     for i in vencedores:
-        sys.stdout.write(str(i + 1) + ' ')
+        print(str(i + 1) + ' ')
 
-    sys.stdout.write("\n")
+    print("\n")
 
 else:
 
-    print "Jogador {0} foi o vencedor!".format(vencedores[0] + 1)
-
-
+    print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
