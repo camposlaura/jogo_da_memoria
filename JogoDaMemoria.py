@@ -260,13 +260,13 @@ while paresEncontrados < totalDePares:
 
         # Solicita coordenadas da primeira peca.
         coordenadas = leCoordenada(dim)
-        if coordenadas == False:
+        if not coordenadas:
             continue
 
         i1, j1 = coordenadas
 
         # Testa se peca ja esta aberta (ou removida)
-        if abrePeca(tabuleiro, i1, j1) == False:
+        if not abrePeca(tabuleiro, i1, j1):
 
             print("Escolha uma peca ainda fechada!")
             input("Pressione <enter> para continuar...")
@@ -282,13 +282,13 @@ while paresEncontrados < totalDePares:
 
         # Solicita coordenadas da segunda peca.
         coordenadas = leCoordenada(dim)
-        if coordenadas == False:
+        if not coordenadas:
             continue
 
         i2, j2 = coordenadas
 
         # Testa se peca ja esta aberta (ou removida)
-        if abrePeca(tabuleiro, i2, j2) == False:
+        if not abrePeca(tabuleiro, i2, j2):
 
             print("Escolha uma peca ainda fechada!")
             input("Pressione <enter> para continuar...")
