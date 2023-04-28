@@ -1,4 +1,5 @@
 import os
+import socket
 import sys
 import time
 import random
@@ -18,7 +19,7 @@ def limpaTela():
 
 def imprimeTabuleiro(tabuleiro):
     """ Imprime estado atual do tabuleiro. """
-    
+
     limpaTela()
 
     # Imprime coordenadas horizontais
@@ -74,7 +75,6 @@ def novoTabuleiro(dim):
 
         linha = []
         for j in range(0, dim):
-
             linha.append(0)
 
         tabuleiro.append(linha)
@@ -85,7 +85,6 @@ def novoTabuleiro(dim):
     for i in range(0, dim):
 
         for j in range(0, dim):
-
             posicoesDisponiveis.append((i, j))
 
     # Varre todas as pecas que serao colocadas no tabuleiro e posiciona 
@@ -93,7 +92,6 @@ def novoTabuleiro(dim):
     for j in range(0, dim // 2):
 
         for i in range(1, dim + 1):
-
             # Sorteio da posicao da segunda peca com valor 'i'
             maximo = len(posicoesDisponiveis)
             indiceAleatorio = random.randint(0, maximo - 1)
@@ -118,7 +116,7 @@ def abrePeca(tabuleiro, i, j):
 
     if tabuleiro[i][j] == '-':
         return False
-    
+
     elif tabuleiro[i][j] < 0:
         tabuleiro[i][j] = -tabuleiro[i][j]
         return True
@@ -133,7 +131,7 @@ def fechaPeca(tabuleiro, i, j):
 
     if tabuleiro[i][j] == '-':
         return False
-    
+
     elif tabuleiro[i][j] > 0:
         tabuleiro[i][j] = -tabuleiro[i][j]
         return True
@@ -148,7 +146,7 @@ def removePeca(tabuleiro, i, j):
 
     if tabuleiro[i][j] == '-':
         return False
-    
+
     else:
         tabuleiro[i][j] = "-"
         return True
@@ -227,118 +225,152 @@ def leCoordenada(dim):
 
 # PARAMETROS DA PARTIDA
 
-
+def main():
 # Tamanho (da lateral) do tabuleiro. Necessariamente par e menor que 10!
-dim = 4
+    dim = 4
 
-# Numero de jogadores
-nJogadores = 2
+    # Numero de jogadores
+    nJogadores = 2
 
-# Numero total de pares de pecas
-totalDePares = dim**2 / 2
+    # Numero total de pares de pecas
+    totalDePares = dim ** 2 / 2
+
+    # PROGRAMA PRINCIPAL
 
 
-# PROGRAMA PRINCIPAL
+    # Cria um novo tabuleiro para a partida
+    tabuleiro = novoTabuleiro(dim)
 
+    # Cria um novo placar zerado
+    placar = novoPlacar(nJogadores)
 
-# Cria um novo tabuleiro para a partida
-tabuleiro = novoTabuleiro(dim)
+    # Partida continua enquanto ainda ha pares de pecas a casar.
+    paresEncontrados = 0
+    vez = 0
+    while paresEncontrados < totalDePares:
 
-# Cria um novo placar zerado
-placar = novoPlacar(nJogadores)
+        # Requisita primeira peca do proximo jogador
+        while True:
 
-# Partida continua enquanto ainda ha pares de pecas a casar.
-paresEncontrados = 0
-vez = 0
-while paresEncontrados < totalDePares:
+            # Imprime status do jogo
+            imprimeStatus(tabuleiro, placar, vez)
 
-    # Requisita primeira peca do proximo jogador
-    while True:
+            # Solicita coordenadas da primeira peca.
+            coordenadas = leCoordenada(dim)
+            if not coordenadas:
+                continue
 
-        # Imprime status do jogo
+            i1, j1 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida)
+            if not abrePeca(tabuleiro, i1, j1):
+                print("Escolha uma peca ainda fechada!")
+                input("Pressione <enter> para continuar...")
+                continue
+
+            break
+
+            # Requisita segunda peca do proximo jogador
+        while True:
+
+            # Imprime status do jogo
+            imprimeStatus(tabuleiro, placar, vez)
+
+            # Solicita coordenadas da segunda peca.
+            coordenadas = leCoordenada(dim)
+            if not coordenadas:
+                continue
+
+            i2, j2 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida)
+            if not abrePeca(tabuleiro, i2, j2):
+                print("Escolha uma peca ainda fechada!")
+                input("Pressione <enter> para continuar...")
+                continue
+
+            break
+
+            # Imprime status do jogo
         imprimeStatus(tabuleiro, placar, vez)
 
-        # Solicita coordenadas da primeira peca.
-        coordenadas = leCoordenada(dim)
-        if not coordenadas:
-            continue
+        print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
 
-        i1, j1 = coordenadas
+        # Pecas escolhidas sao iguais?
+        if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
 
-        # Testa se peca ja esta aberta (ou removida)
-        if not abrePeca(tabuleiro, i1, j1):
+            print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
 
-            print("Escolha uma peca ainda fechada!")
-            input("Pressione <enter> para continuar...")
-            continue
+            incrementaPlacar(placar, vez)
+            paresEncontrados = paresEncontrados + 1
+            removePeca(tabuleiro, i1, j1)
+            removePeca(tabuleiro, i2, j2)
 
-        break 
+            time.sleep(5)
 
-    # Requisita segunda peca do proximo jogador
-    while True:
+        else:
 
-        # Imprime status do jogo
-        imprimeStatus(tabuleiro, placar, vez)
+            print("Pecas nao casam!")
 
-        # Solicita coordenadas da segunda peca.
-        coordenadas = leCoordenada(dim)
-        if not coordenadas:
-            continue
+            time.sleep(3)
 
-        i2, j2 = coordenadas
+            fechaPeca(tabuleiro, i1, j1)
+            fechaPeca(tabuleiro, i2, j2)
+            vez = (vez + 1) % nJogadores
 
-        # Testa se peca ja esta aberta (ou removida)
-        if not abrePeca(tabuleiro, i2, j2):
+    # Verificar o vencedor e imprimir
+    pontuacaoMaxima = max(placar)
+    vencedores = []
+    for i in range(0, nJogadores):
 
-            print("Escolha uma peca ainda fechada!")
-            input("Pressione <enter> para continuar...")
-            continue
+        if placar[i] == pontuacaoMaxima:
+            vencedores.append(i)
 
-        break 
+    if len(vencedores) > 1:
 
-    # Imprime status do jogo
-    imprimeStatus(tabuleiro, placar, vez)
+        print("Houve empate entre os jogadores ")
+        for i in vencedores:
+            print(str(i + 1) + ' ')
 
-    print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
-
-    # Pecas escolhidas sao iguais?
-    if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
-
-        print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
-        
-        incrementaPlacar(placar, vez)
-        paresEncontrados = paresEncontrados + 1
-        removePeca(tabuleiro, i1, j1)
-        removePeca(tabuleiro, i2, j2)
-
-        time.sleep(5)
+        print("\n")
 
     else:
 
-        print("Pecas nao casam!")
-        
-        time.sleep(3)
+        print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
 
-        fechaPeca(tabuleiro, i1, j1)
-        fechaPeca(tabuleiro, i2, j2)
-        vez = (vez + 1) % nJogadores
 
-# Verificar o vencedor e imprimir
-pontuacaoMaxima = max(placar)
-vencedores = []
-for i in range(0, nJogadores):
+class MeuSoquete:
+    def __init__(self, sock=None):
+        if sock is None:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.sock = sock
 
-    if placar[i] == pontuacaoMaxima:
-        vencedores.append(i)
+    def connect(self, addr):
+        self.sock.connect(addr)
 
-if len(vencedores) > 1:
+    def accept(self):
+        self.sock.accept()
 
-    print("Houve empate entre os jogadores ")
-    for i in vencedores:
-        print(str(i + 1) + ' ')
+    def mySend(self, msg):
+        totalsent = 0
+        while totalsent < len(msg):
+            sent = self.sock.send(msg[totalsent:].encode())
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            totalsent = totalsent + sent
 
-    print("\n")
+    def myReceive(self, msg):
+        chunks = []
+        bytes_recd = 0
+        while bytes_recd < len(msg):
+            chunk = self.sock.recv(min(msg.len - bytes_recd, 2048))
+            if chunk == b'':
+                raise RuntimeError("socket connection broken")
+            chunks.append(chunk)
+            bytes_recd = bytes_recd + len(chunk)
+        return b''.join(chunks)
 
-else:
+    def close(self):
+        self.sock.close()
 
-    print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
