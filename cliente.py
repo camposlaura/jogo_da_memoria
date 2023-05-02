@@ -1,7 +1,5 @@
 import socket
 
-from JogoDaMemoria import MeuSoquete
-
 
 def leCoordenada(dim):
     """ Le um coordenadas de uma peca.
@@ -33,12 +31,20 @@ def leCoordenada(dim):
     return f"{i}, {j}"
 
 
-ip = ''
-port = 7000
+ip = 'localhost'
+port = 9000
 addr = (ip, port)
-client_socket = MeuSoquete()
+client_socket = socket.socket()
 client_socket.connect(addr)
-mensagem = leCoordenada(4)
-client_socket.mySend(mensagem)
-print('mensagem enviada')
+# client_socket.connect(addr)
+# client_socket2 = socket.socket()
+# client_socket2.connect(addr)
+# client_socket3 = socket.socket()
+# client_socket3.connect(addr)
+client1 = client_socket.recv(4098)
+# client2 = client_socket2.recv(4098)
+print(f"{client1}")
+
 client_socket.close()
+# client_socket2.close()
+# client_socket3.close()
