@@ -36,7 +36,7 @@ port = 10000
 addr = (ip, port)
 client_socket = socket.socket()
 client_socket.connect(addr)
-client = client_socket.recv(4098)
+client = client_socket.recv(16392)
 print(f"{client}")
 
 # client = client_socket.recv(4098)

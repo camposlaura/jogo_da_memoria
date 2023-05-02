@@ -183,7 +183,7 @@ def imprimePlacar(placar):
     str = ''
     nJogadores = len(placar)
 
-    str.join("Placar:")
+    str += "Placar:"
     str.join("---------------------")
     for i in range(0, nJogadores):
         str.join("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
@@ -203,6 +203,7 @@ def imprimeStatus(tabuleiro, placar, vez):
     str.join('\n\n')
 
     str.join("Vez do Jogador {0}.\n".format(vez + 1))
+
     return str
 
 
@@ -231,6 +232,7 @@ def main():
         clientes.append(serv_socket.accept())
 
         print(f"Conexão estabelecida com {clientes[num_clientes][1]}")
+
         boas_vindas = f'Bem vindo ao servidor, jogador {num_clientes}!\n'
         clientes[num_clientes][0].send(boas_vindas.encode())
         num_clientes += 1
@@ -242,29 +244,29 @@ def main():
     # 2 clientes conectados
 
     # Numero total de pares de pecas
-    # totalDePares = dim ** 2 / 2
+    totalDePares = dim ** 2 / 2
+
+    # PROGRAMA PRINCIPAL
+
+    # Cria um novo tabuleiro para a partida
+    tabuleiro = novoTabuleiro(dim)
+
+    # Cria um novo placar zerado
+    placar = novoPlacar(num_jogadores)
+
+    # Partida continua enquanto ainda ha pares de pecas a casar.
+    paresEncontrados = 0
+    vez = 0
+    while paresEncontrados < totalDePares:
+
+        # Requisita primeira peca do proximo jogador
+        while True:
+            msg_vez = f'O jogador da vez eh o jogador {vez} \n'
+            # Imprime status do jogo
+            for cliente in clientes:
+                cliente[0].send(msg_vez.encode())
     #
-    # # PROGRAMA PRINCIPAL
-    #
-    # # Cria um novo tabuleiro para a partida
-    # tabuleiro = novoTabuleiro(dim)
-    #
-    # # Cria um novo placar zerado
-    # placar = novoPlacar(num_jogadores)
-    #
-    # # Partida continua enquanto ainda ha pares de pecas a casar.
-    # paresEncontrados = 0
-    # vez = 0
-    # while paresEncontrados < totalDePares:
-    #
-    #     # Requisita primeira peca do proximo jogador
-    #     while True:
-    #         msg_vez = f'O jogador da vez eh o jogador {vez} \n'
-    #         # Imprime status do jogo
-    #         for cliente in clientes:
-    #             cliente[0].send(msg_vez.encode())
-    #
-    #         clientes[vez][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
+            clientes[1][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
     #
     #         # Solicita coordenadas da primeira peca.
     #         coordenadas = clientes[vez][0].recv(4098)
