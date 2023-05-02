@@ -26,6 +26,21 @@ def fechaPeca(tabuleiro, i, j):
     return False
 
 
+def abrePeca(tabuleiro, i, j):
+    """ Abre (revela) peca na posicao (i, j).
+        Se posicao ja esta aberta ou se ja foi removida, retorna False.
+        Caso contrario, retorna True. """
+
+    if tabuleiro[i][j] == '-':
+        return False
+
+    elif tabuleiro[i][j] < 0:
+        tabuleiro[i][j] = -tabuleiro[i][j]
+        return True
+
+    return False
+
+
 def novoTabuleiro(dim):
     """ Cria um novo tabuleiro com pecas aleatorias.
         'dim' eh a dimensao do tabuleiro, necessariamente par. """
@@ -72,28 +87,28 @@ def novoTabuleiro(dim):
 
 def imprimeTabuleiro(tabuleiro):
     """ Imprime estado atual do tabuleiro. """
-
+    str = ''
     limpaTela()
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
-    print("     ", end="")
+    str.join("     ")
     for i in range(0, dim):
-        print("{0:2d} ".format(i), end="")
+        str.join("{0:2d} ".format(i))
 
-    print("\n")
+    str.join("\n")
 
     # Imprime separador horizontal
-    print("-----", end="")
+    str.join("-----")
     for i in range(0, dim):
-        print("---", end="")
+        str.join("---")
 
-    print("\n")
+    str.join("\n")
 
     for i in range(0, dim):
 
         # Imprime coordenadas verticais
-        print("{0:2d} | ".format(i), end="")
+        str.join("{0:2d} | ".format(i))
 
         # Imprime conteudo da linha 'i'
         for j in range(0, dim):
@@ -102,20 +117,21 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
-                print(" - ", end="")
+                str.join(" - ")
 
             # Peca esta levantada?
             elif tabuleiro[i][j] >= 0:
 
                 # Sim, imprime valor.
-                print("{0:2d} ".format(tabuleiro[i][j]), end="")
+                str.join("{0:2d} ".format(tabuleiro[i][j]))
 
             else:
 
                 # Nao, imprime '?'
-                print(" ? ", end="")
+                str.join(" ? ")
 
-        print("\n")
+        str.join("\n")
+    return str
 
 
 def fechaPeca(tabuleiro, i, j):
@@ -164,13 +180,15 @@ def incrementaPlacar(placar, jogador):
 def imprimePlacar(placar):
     """ Imprime o placar atual """
 
+    str = ''
     nJogadores = len(placar)
 
-    print("Placar:")
-    print("---------------------")
+    str.join("Placar:")
+    str.join("---------------------")
     for i in range(0, nJogadores):
-        print("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
+        str.join("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
 
+    return str
 
 # FUNCOES DE INTERACAO COM O USUARIO
 
@@ -178,13 +196,14 @@ def imprimePlacar(placar):
 def imprimeStatus(tabuleiro, placar, vez):
     """ Imprime informacoes basicas sobre o estado atual da partida. """
 
-    imprimeTabuleiro(tabuleiro)
-    print('\n')
+    str = imprimeTabuleiro(tabuleiro)
+    str.join('\n')
 
-    imprimePlacar(placar)
-    print('\n\n')
+    str.join(imprimePlacar(placar))
+    str.join('\n\n')
 
-    print("Vez do Jogador {0}.\n".format(vez + 1))
+    str.join("Vez do Jogador {0}.\n".format(vez + 1))
+    return str
 
 
 def main():
@@ -195,7 +214,7 @@ def main():
     num_jogadores = 2
 
     host = 'localhost'
-    port = 9000
+    port = 10000
     addr = (host, port)
     # Criação do soquete do server
     serv_socket = socket.socket()
@@ -206,13 +225,14 @@ def main():
     serv_socket.listen(num_jogadores)
 
     num_clientes = 0
-    cliente = []
+    clientes = []
     while True:
         print('aguardando conexao de 2 jogadores')
-        cliente.append(serv_socket.accept())
-        print(f"Conexão estabelecida com {cliente[num_clientes][1]}")
-        boas_vindas = "Bem vindo ao servidor!"
-        cliente[num_clientes][0].send(boas_vindas.encode())
+        clientes.append(serv_socket.accept())
+
+        print(f"Conexão estabelecida com {clientes[num_clientes][1]}")
+        boas_vindas = f'Bem vindo ao servidor, jogador {num_clientes}!\n'
+        clientes[num_clientes][0].send(boas_vindas.encode())
         num_clientes += 1
         print(f"{num_clientes} clientes conectados")
 
@@ -220,20 +240,18 @@ def main():
             break
 
     # 2 clientes conectados
-    serv_socket.close()
 
-    #
     # Numero total de pares de pecas
-    totalDePares = dim ** 2 / 2
+    # totalDePares = dim ** 2 / 2
     #
-    # PROGRAMA PRINCIPAL
+    # # PROGRAMA PRINCIPAL
     #
-    # Cria um novo tabuleiro para a partida
-    tabuleiro = novoTabuleiro(dim)
-    # #
+    # # Cria um novo tabuleiro para a partida
+    # tabuleiro = novoTabuleiro(dim)
+    #
     # # Cria um novo placar zerado
     # placar = novoPlacar(num_jogadores)
-    # #
+    #
     # # Partida continua enquanto ainda ha pares de pecas a casar.
     # paresEncontrados = 0
     # vez = 0
@@ -241,11 +259,16 @@ def main():
     #
     #     # Requisita primeira peca do proximo jogador
     #     while True:
+    #         msg_vez = f'O jogador da vez eh o jogador {vez} \n'
     #         # Imprime status do jogo
-    #         imprimeStatus(tabuleiro, placar, vez)
+    #         for cliente in clientes:
+    #             cliente[0].send(msg_vez.encode())
+    #
+    #         clientes[vez][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
     #
     #         # Solicita coordenadas da primeira peca.
-    #         coordenadas = leCoordenada(dim)
+    #         coordenadas = clientes[vez][0].recv(4098)
+    #         print(coordenadas)
     #         if not coordenadas:
     #             continue
     #
@@ -326,6 +349,7 @@ def main():
     # else:
     #
     #     print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
+    serv_socket.close()
 
 
 main()

@@ -32,18 +32,16 @@ def leCoordenada(dim):
 
 
 ip = 'localhost'
-port = 9000
+port = 10000
 addr = (ip, port)
 client_socket = socket.socket()
 client_socket.connect(addr)
-# client_socket.connect(addr)
-# client_socket2 = socket.socket()
-# client_socket2.connect(addr)
-# client_socket3 = socket.socket()
-# client_socket3.connect(addr)
-client1 = client_socket.recv(4098)
-# client2 = client_socket2.recv(4098)
-print(f"{client1}")
+client = client_socket.recv(4098)
+print(f"{client}")
+
+# client = client_socket.recv(4098)
+# print(f"{client}")
+# client_socket.send(leCoordenada().encode())
 
 client_socket.close()
 # client_socket2.close()
