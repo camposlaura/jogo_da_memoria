@@ -42,7 +42,7 @@ print(f"{client}")
 # client = client_socket.recv(4098)
 # print(f"{client}")
 # client_socket.send(leCoordenada().encode())
-
+client = client_socket.recv(16392)
 client_socket.close()
 # client_socket2.close()
 # client_socket3.close()

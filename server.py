@@ -92,23 +92,23 @@ def imprimeTabuleiro(tabuleiro):
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
-    str.join("     ")
+    str+="     "
     for i in range(0, dim):
-        str.join("{0:2d} ".format(i))
+        str+="{0:2d} ".format(i)
 
-    str.join("\n")
+    str+="\n"
 
     # Imprime separador horizontal
-    str.join("-----")
+    str+="-----"
     for i in range(0, dim):
-        str.join("---")
+        str+="---"
 
-    str.join("\n")
+    str+="\n"
 
     for i in range(0, dim):
 
         # Imprime coordenadas verticais
-        str.join("{0:2d} | ".format(i))
+        str+="{0:2d} | ".format(i)
 
         # Imprime conteudo da linha 'i'
         for j in range(0, dim):
@@ -117,20 +117,20 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
-                str.join(" - ")
+                str+=" - "
 
             # Peca esta levantada?
             elif tabuleiro[i][j] >= 0:
 
                 # Sim, imprime valor.
-                str.join("{0:2d} ".format(tabuleiro[i][j]))
+                str+="{0:2d} ".format(tabuleiro[i][j])
 
             else:
 
                 # Nao, imprime '?'
-                str.join(" ? ")
+                str+=" ? "
 
-        str.join("\n")
+        str+="\n"
     return str
 
 
@@ -184,9 +184,9 @@ def imprimePlacar(placar):
     nJogadores = len(placar)
 
     str += "Placar:"
-    str.join("---------------------")
+    str+=("---------------------")
     for i in range(0, nJogadores):
-        str.join("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
+        str+="Jogador {0}: {1:2d}".format(i + 1, placar[i])
 
     return str
 
@@ -197,12 +197,12 @@ def imprimeStatus(tabuleiro, placar, vez):
     """ Imprime informacoes basicas sobre o estado atual da partida. """
 
     str = imprimeTabuleiro(tabuleiro)
-    str.join('\n')
+    str+='\n'
 
-    str.join(imprimePlacar(placar))
-    str.join('\n\n')
+    str+=imprimePlacar(placar)
+    str+='\n\n'
 
-    str.join("Vez do Jogador {0}.\n".format(vez + 1))
+    str+="Vez do Jogador {0}.\n".format(vez + 1)
 
     return str
 
