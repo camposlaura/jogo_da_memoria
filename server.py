@@ -1,5 +1,6 @@
 import os
 import socket
+import struct
 import sys
 import time
 import random
@@ -88,27 +89,27 @@ def novoTabuleiro(dim):
 def imprimeTabuleiro(tabuleiro):
     """ Imprime estado atual do tabuleiro. """
     str = ''
-    limpaTela()
+    # limpaTela()
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
-    str+="     "
+    str += "     "
     for i in range(0, dim):
-        str+="{0:2d} ".format(i)
+        str += "{0:2d} ".format(i)
 
-    str+="\n"
+    str += "\n"
 
     # Imprime separador horizontal
-    str+="-----"
+    str += "-----"
     for i in range(0, dim):
-        str+="---"
+        str += "---"
 
-    str+="\n"
+    str += "\n"
 
     for i in range(0, dim):
 
         # Imprime coordenadas verticais
-        str+="{0:2d} | ".format(i)
+        str += "{0:2d} | ".format(i)
 
         # Imprime conteudo da linha 'i'
         for j in range(0, dim):
@@ -117,20 +118,20 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
-                str+=" - "
+                str += " - "
 
             # Peca esta levantada?
             elif tabuleiro[i][j] >= 0:
 
                 # Sim, imprime valor.
-                str+="{0:2d} ".format(tabuleiro[i][j])
+                str += "{0:2d} ".format(tabuleiro[i][j])
 
             else:
 
                 # Nao, imprime '?'
-                str+=" ? "
+                str += " ? "
 
-        str+="\n"
+        str += "\n"
     return str
 
 
@@ -184,11 +185,12 @@ def imprimePlacar(placar):
     nJogadores = len(placar)
 
     str += "Placar:"
-    str+=("---------------------")
+    # str += "---------------------\n"
     for i in range(0, nJogadores):
-        str+="Jogador {0}: {1:2d}".format(i + 1, placar[i])
+        str += "Jogador {0}: {1:2d}".format(i + 1, placar[i])
 
     return str
+
 
 # FUNCOES DE INTERACAO COM O USUARIO
 
@@ -197,14 +199,19 @@ def imprimeStatus(tabuleiro, placar, vez):
     """ Imprime informacoes basicas sobre o estado atual da partida. """
 
     str = imprimeTabuleiro(tabuleiro)
-    str+='\n'
+    str += '\n'
 
-    str+=imprimePlacar(placar)
-    str+='\n\n'
+    str += imprimePlacar(placar)
+    str += '\n\n'
 
-    str+="Vez do Jogador {0}.\n".format(vez + 1)
+    str += "Vez do Jogador {0}.\n".format(vez + 1)
 
     return str
+
+
+def leCoordenada(coord):
+    partes = coord.split(':')
+    return int(partes[1]), int(partes[2])
 
 
 def main():
@@ -215,7 +222,7 @@ def main():
     num_jogadores = 2
 
     host = 'localhost'
-    port = 10000
+    port = 9000
     addr = (host, port)
     # Criação do soquete do server
     serv_socket = socket.socket()
@@ -225,22 +232,27 @@ def main():
     # Define o tamanho max do servidor para o tamanho dos jogadores
     serv_socket.listen(num_jogadores)
 
-    num_clientes = 0
     clientes = []
     while True:
         print('aguardando conexao de 2 jogadores')
         clientes.append(serv_socket.accept())
+        sequencia_jogador = len(clientes) - 1
+        # num_clientes_bytes = struct.pack('i', )
+        # clientes[num_clientes][0].send(num_clientes)
+        boas_vindas = f'Bem vindo ao servidor, jogador {sequencia_jogador}!\n'
+        clientes[sequencia_jogador][0].send(boas_vindas.encode())
 
-        print(f"Conexão estabelecida com {clientes[num_clientes][1]}")
+        num_sequencial = f"num_sequencial:{sequencia_jogador}"
+        clientes[sequencia_jogador][0].send(num_sequencial.encode())
 
-        boas_vindas = f'Bem vindo ao servidor, jogador {num_clientes}!\n'
-        clientes[num_clientes][0].send(boas_vindas.encode())
-        num_clientes += 1
-        print(f"{num_clientes} clientes conectados")
+        print(f"{len(clientes)} clientes conectados")
 
-        if num_clientes == num_jogadores:
+        if len(clientes) == num_jogadores:
             break
 
+    dados_sistema = f"dados_tabuleiro:{dim}"
+    for cliente in clientes:
+        cliente[0].send(dados_sistema.encode())
     # 2 clientes conectados
 
     # Numero total de pares de pecas
@@ -261,30 +273,34 @@ def main():
 
         # Requisita primeira peca do proximo jogador
         while True:
-            msg_vez = f'O jogador da vez eh o jogador {vez} \n'
-            # Imprime status do jogo
+
+            dados_vez = f"dados_vez:{vez}"
             for cliente in clientes:
-                cliente[0].send(msg_vez.encode())
+                cliente[0].send(dados_vez.encode())
+
+            clientes[vez][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
+
+            # Solicita coordenadas da primeira peca.
+            coordenadas = leCoordenada(clientes[vez][0].recv(4098).decode())
+            print(coordenadas)
+            if not coordenadas:
+                continue
+
+            i1, j1 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida)
+            # if not abrePeca(tabuleiro, i1, j1):
+            #     erro = "peca_aberta:0"
+            #     clientes[vez][0].send(erro.encode())
+            #     print("Escolha uma peca ainda fechada!")
+            #     continue
+            # else:
+            #     acerto = "peca_aberta:1"
+            #     clientes[vez][0].send(acerto.encode())
+
+            # break
     #
-            clientes[1][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
-    #
-    #         # Solicita coordenadas da primeira peca.
-    #         coordenadas = clientes[vez][0].recv(4098)
-    #         print(coordenadas)
-    #         if not coordenadas:
-    #             continue
-    #
-    #         i1, j1 = coordenadas
-    #
-    #         # Testa se peca ja esta aberta (ou removida)
-    #         if not abrePeca(tabuleiro, i1, j1):
-    #             print("Escolha uma peca ainda fechada!")
-    #             input("Pressione <enter> para continuar...")
-    #             continue
-    #
-    #         break
-    #
-    #         # Requisita segunda peca do proximo jogador
+    #     # Requisita segunda peca do proximo jogador
     #     while True:
     #
     #         # Imprime status do jogo
