@@ -1,4 +1,5 @@
 import socket
+import struct
 
 
 def leCoordenada(dim):
@@ -36,30 +37,84 @@ def recebeDadosNumericos(msg):
     return int(partes[1])
 
 
+# solução para evitar que mais de uma mensagem se mescle com a outra, garante que
+# reciev vai receber numero fixo de dados igual ao do send
+
+def send_one_message(sock, data):
+    length = len(data)
+    sock.sendall(struct.pack('!I', length))
+    sock.sendall(data)
+
+def recv_one_message(sock):
+    lengthbuf = recvall(sock, 4)
+    length, = struct.unpack('!I', lengthbuf)
+    return recvall(sock, length)
+
+def recvall(sock, count):
+    buf = b''
+    while count:
+        newbuf = sock.recv(count)
+        if not newbuf: return None
+        buf += newbuf
+        count -= len(newbuf)
+    return buf
+
 ip = 'localhost'
-port = 9000
+port = 10040
 addr = (ip, port)
 client_socket = socket.socket()
 client_socket.connect(addr)
+buffer = []
 
-boas_vindas = client_socket.recv(2048).decode()
+boas_vindas = recv_one_message(client_socket).decode()
 print(f"{boas_vindas}")
 
-num_sequencial = recebeDadosNumericos(client_socket.recv(2048).decode())
+num_sequencial = recebeDadosNumericos(recv_one_message(client_socket).decode())
+coordenadas= False
 
-dim = recebeDadosNumericos(client_socket.recv(2048).decode())
+dim = recebeDadosNumericos(recv_one_message(client_socket).decode())
 print(f"Dimensão do tabuleiro {dim}\n")
-while True:
-    vez = recebeDadosNumericos(client_socket.recv(2048).decode())
 
-    status = client_socket.recv(16392).decode()
+while True:
+    vez = recebeDadosNumericos(recv_one_message(client_socket).decode())
+
+    status = recv_one_message(client_socket).decode()
     print(f"{status}")
 
+    # Jogada de um jogador
     if num_sequencial == vez:
-        coordenadas = leCoordenada(dim)
-        client_socket.send(coordenadas.encode())
-        # if recebeDadosNumericos(client_socket.recv(2048).decode()):
-        #     print('Insira uma peça aberta')
+        # primeira peça
+        while True:
+            # Vale notar que eu mudei para a checagem se é uma jogada válidar ser
+            # feita no cliente ao invés do servidor
+            while not coordenadas:
+                coordenadas = leCoordenada(dim)
+            send_one_message(client_socket, coordenadas.encode())
+            coordenadas = False
+            peca_valida = recebeDadosNumericos(recv_one_message(client_socket).decode())
+            if peca_valida == 0:
+                print("Escolha uma primeira peça ainda fechada!")
+                continue
+            else:
+                break
+        
+        # segunda peça
+        while True:
+            while not coordenadas:
+                coordenadas = leCoordenada(dim)
+            send_one_message(client_socket, coordenadas.encode())
+            coordenadas= False
+            peca_valida = recebeDadosNumericos(recv_one_message(client_socket).decode())
+            if peca_valida == 0:
+                print("Escolha uma segunda peçaa ainda fechada!")
+                continue
+            else:
+                break
+    #Mensagens informando as peças escolhidas 
+    print(recv_one_message(client_socket).decode())
+    #Mensagens informando se o jogador da vez pontuou
+    print(recv_one_message(client_socket).decode())
+
 
 
     if not status:

@@ -214,6 +214,29 @@ def leCoordenada(coord):
     return int(partes[1]), int(partes[2])
 
 
+# solução para evitar que mais de uma mensagem se mescle com a outra, garante que
+# reciev vai receber numero fixo de dados igual ao do send
+
+def send_one_message(sock, data):
+    length = len(data)
+    sock.sendall(struct.pack('!I', length))
+    sock.sendall(data)
+
+def recv_one_message(sock):
+    lengthbuf = recvall(sock, 4)
+    length, = struct.unpack('!I', lengthbuf)
+    return recvall(sock, length)
+
+def recvall(sock, count):
+    buf = b''
+    while count:
+        newbuf = sock.recv(count)
+        if not newbuf: return None
+        buf += newbuf
+        count -= len(newbuf)
+    return buf
+
+
 def main():
     # Tamanho (da lateral) do tabuleiro. Necessariamente par e menor que 10!
     dim = 4
@@ -222,7 +245,7 @@ def main():
     num_jogadores = 2
 
     host = 'localhost'
-    port = 9000
+    port = 10040
     addr = (host, port)
     # Criação do soquete do server
     serv_socket = socket.socket()
@@ -240,10 +263,10 @@ def main():
         # num_clientes_bytes = struct.pack('i', )
         # clientes[num_clientes][0].send(num_clientes)
         boas_vindas = f'Bem vindo ao servidor, jogador {sequencia_jogador}!\n'
-        clientes[sequencia_jogador][0].send(boas_vindas.encode())
+        send_one_message(clientes[sequencia_jogador][0], boas_vindas.encode())
 
         num_sequencial = f"num_sequencial:{sequencia_jogador}"
-        clientes[sequencia_jogador][0].send(num_sequencial.encode())
+        send_one_message(clientes[sequencia_jogador][0],num_sequencial.encode())
 
         print(f"{len(clientes)} clientes conectados")
 
@@ -252,7 +275,7 @@ def main():
 
     dados_sistema = f"dados_tabuleiro:{dim}"
     for cliente in clientes:
-        cliente[0].send(dados_sistema.encode())
+        send_one_message(cliente[0],dados_sistema.encode())
     # 2 clientes conectados
 
     # Numero total de pares de pecas
@@ -269,104 +292,94 @@ def main():
     # Partida continua enquanto ainda ha pares de pecas a casar.
     paresEncontrados = 0
     vez = 0
+    buffer = []
     while paresEncontrados < totalDePares:
 
-        # Requisita primeira peca do proximo jogador
+        dados_vez = f"dados_vez:{vez}"
+        for cliente in clientes:
+            send_one_message(cliente[0], dados_vez.encode())
+            send_one_message(cliente[0], imprimeStatus(tabuleiro, placar, vez).encode())
+
+
+        # Jogada de um jogador
+
+        # Solicita coordenadas da primeira peca.
         while True:
-
-            dados_vez = f"dados_vez:{vez}"
-            for cliente in clientes:
-                cliente[0].send(dados_vez.encode())
-
-            clientes[vez][0].send(imprimeStatus(tabuleiro, placar, vez).encode())
-
-            # Solicita coordenadas da primeira peca.
-            coordenadas = leCoordenada(clientes[vez][0].recv(4098).decode())
+            coordenadas = recv_one_message(clientes[vez][0]).decode()
+            coordenadas = leCoordenada(coordenadas)
             print(coordenadas)
-            if not coordenadas:
-                continue
 
             i1, j1 = coordenadas
 
             # Testa se peca ja esta aberta (ou removida)
-            # if not abrePeca(tabuleiro, i1, j1):
-            #     erro = "peca_aberta:0"
-            #     clientes[vez][0].send(erro.encode())
-            #     print("Escolha uma peca ainda fechada!")
-            #     continue
-            # else:
-            #     acerto = "peca_aberta:1"
-            #     clientes[vez][0].send(acerto.encode())
+            if not abrePeca(tabuleiro, i1, j1):
+                erro = "peca_aberta:0"
+                send_one_message(clientes[vez][0], erro.encode())
+                continue
+            else:
+                acerto = "peca_aberta:1"
+                send_one_message(clientes[vez][0], acerto.encode())
+                break
+        # Solicita coordenadas da primeira peca.
+        while True:
+            coordenadas = recv_one_message(clientes[vez][0]).decode()
+            coordenadas = leCoordenada(coordenadas)
+            print(coordenadas)
 
-            # break
-    #
-    #     # Requisita segunda peca do proximo jogador
-    #     while True:
-    #
-    #         # Imprime status do jogo
-    #         imprimeStatus(tabuleiro, placar, vez)
-    #
-    #         # Solicita coordenadas da segunda peca.
-    #         coordenadas = leCoordenada(dim)
-    #         if not coordenadas:
-    #             continue
-    #
-    #         i2, j2 = coordenadas
-    #
-    #         # Testa se peca ja esta aberta (ou removida)
-    #         if not abrePeca(tabuleiro, i2, j2):
-    #             print("Escolha uma peca ainda fechada!")
-    #             input("Pressione <enter> para continuar...")
-    #             continue
-    #
-    #         break
-    #
-    #         # Imprime status do jogo
-    #     imprimeStatus(tabuleiro, placar, vez)
-    #
-    #     print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
-    #
-    #     # Pecas escolhidas sao iguais?
-    #     if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
-    #
-    #         print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
-    #
-    #         incrementaPlacar(placar, vez)
-    #         paresEncontrados = paresEncontrados + 1
-    #         removePeca(tabuleiro, i1, j1)
-    #         removePeca(tabuleiro, i2, j2)
-    #
-    #         time.sleep(5)
-    #
-    #     else:
-    #
-    #         print("Pecas nao casam!")
-    #
-    #         time.sleep(3)
-    #
-    #         fechaPeca(tabuleiro, i1, j1)
-    #         fechaPeca(tabuleiro, i2, j2)
-    #         vez = (vez + 1) % nJogadores
-    #
-    # # Verificar o vencedor e imprimir
-    # pontuacaoMaxima = max(placar)
-    # vencedores = []
-    # for i in range(0, nJogadores):
-    #
-    #     if placar[i] == pontuacaoMaxima:
-    #         vencedores.append(i)
-    #
-    # if len(vencedores) > 1:
-    #
-    #     print("Houve empate entre os jogadores ")
-    #     for i in vencedores:
-    #         print(str(i + 1) + ' ')
-    #
-    #     print("\n")
-    #
-    # else:
-    #
-    #     print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
+            i2, j2 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida) e ve se ele não repetiu a peça anterior
+            if not abrePeca(tabuleiro, i2, j2) or (i2==i1 and j1==j2):
+                erro = "peca_aberta:0"
+                send_one_message(clientes[vez][0], erro.encode())
+                continue
+            else:
+                acerto = "peca_aberta:1"
+                send_one_message(clientes[vez][0], acerto.encode())
+                break
+        
+        for cliente in clientes:
+            send_one_message(cliente[0], ("Pecas escolhidas pelo jogador {0} --> ({1}, {2}) e ({3}, {4})\n".format(vez, i1, j1, i2, j2)).encode())
+        time.sleep(2)
+         # Pecas escolhidas sao iguais?
+        if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
+            incrementaPlacar(placar, vez)
+            paresEncontrados = paresEncontrados + 1
+            removePeca(tabuleiro, i1, j1)
+            removePeca(tabuleiro, i2, j2)
+            time.sleep(2)
+            for cliente in clientes:
+                send_one_message(cliente[0], ("Pecas casam! Ponto para o jogador {0}.".format(vez + 1)).encode())
+        else:
+            fechaPeca(tabuleiro, i1, j1)
+            fechaPeca(tabuleiro, i2, j2)
+            time.sleep(3)
+            for cliente in clientes:
+                send_one_message(cliente[0], ("Pecas do jogador {0} nao casam!".format(vez + 1)).encode())
+        
+        #troca a vez e repete o loop
+        vez = (vez + 1) % 2
+    # #
+
+    # #
+    # # # Verificar o vencedor e imprimir
+    # # pontuacaoMaxima = max(placar)
+    # # vencedores = []
+    # # for i in range(0, nJogadores):
+    # #
+    # #     if placar[i] == pontuacaoMaxima:
+    # #         vencedores.append(i)
+    # #
+    # # if len(vencedores) > 1:
+    # #
+    # #     print("Houve empate entre os jogadores ")
+    # #     for i in vencedores:
+    # #         print(str(i + 1) + ' ')
+    # #
+    # #     print("\n")
+    # #
+    # # else:
+    # #     print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
     serv_socket.close()
 
 
