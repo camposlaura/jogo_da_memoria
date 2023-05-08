@@ -82,14 +82,12 @@ def novoTabuleiro(dim):
             rI, rJ = posicoesDisponiveis.pop(indiceAleatorio)
 
             tabuleiro[rI][rJ] = -i
-
     return tabuleiro
 
 
 def imprimeTabuleiro(tabuleiro):
     """ Imprime estado atual do tabuleiro. """
     str = ''
-    # limpaTela()
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
@@ -187,7 +185,7 @@ def imprimePlacar(placar):
     str += "Placar:"
     # str += "---------------------\n"
     for i in range(0, nJogadores):
-        str += "Jogador {0}: {1:2d}".format(i + 1, placar[i])
+        str += "Jogador {0}: {1:2d} ".format(i + 1, placar[i])
 
     return str
 
@@ -260,8 +258,6 @@ def main():
         print('aguardando conexao de 2 jogadores')
         clientes.append(serv_socket.accept())
         sequencia_jogador = len(clientes) - 1
-        # num_clientes_bytes = struct.pack('i', )
-        # clientes[num_clientes][0].send(num_clientes)
         boas_vindas = f'Bem vindo ao servidor, jogador {sequencia_jogador}!\n'
         send_one_message(clientes[sequencia_jogador][0], boas_vindas.encode())
 
@@ -320,6 +316,9 @@ def main():
                 acerto = "peca_aberta:1"
                 send_one_message(clientes[vez][0], acerto.encode())
                 break
+
+        send_one_message(clientes[vez][0], imprimeStatus(tabuleiro, placar, vez).encode())
+
         # Solicita coordenadas da primeira peca.
         while True:
             coordenadas = recv_one_message(clientes[vez][0]).decode()
@@ -337,14 +336,14 @@ def main():
                 acerto = "peca_aberta:1"
                 send_one_message(clientes[vez][0], acerto.encode())
                 break
-        
+        send_one_message(clientes[vez][0], imprimeStatus(tabuleiro, placar, vez).encode())
         for cliente in clientes:
             send_one_message(cliente[0], ("Pecas escolhidas pelo jogador {0} --> ({1}, {2}) e ({3}, {4})\n".format(vez, i1, j1, i2, j2)).encode())
         time.sleep(2)
          # Pecas escolhidas sao iguais?
         if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
             incrementaPlacar(placar, vez)
-            paresEncontrados = paresEncontrados + 1
+            paresEncontrados += 1
             removePeca(tabuleiro, i1, j1)
             removePeca(tabuleiro, i2, j2)
             time.sleep(2)
@@ -358,28 +357,35 @@ def main():
                 send_one_message(cliente[0], ("Pecas do jogador {0} nao casam!".format(vez + 1)).encode())
         
         #troca a vez e repete o loop
-        vez = (vez + 1) % 2
-    # #
+            vez = (vez + 1) % 2
 
-    # #
-    # # # Verificar o vencedor e imprimir
-    # # pontuacaoMaxima = max(placar)
-    # # vencedores = []
-    # # for i in range(0, nJogadores):
-    # #
-    # #     if placar[i] == pontuacaoMaxima:
-    # #         vencedores.append(i)
-    # #
-    # # if len(vencedores) > 1:
-    # #
-    # #     print("Houve empate entre os jogadores ")
-    # #     for i in vencedores:
-    # #         print(str(i + 1) + ' ')
-    # #
-    # #     print("\n")
-    # #
-    # # else:
-    # #     print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
+        if paresEncontrados < totalDePares:
+            msg_continua = 'acabou:0'
+            for cliente in clientes:
+                send_one_message(cliente[0], msg_continua.encode())
+
+    msg_end = 'acabou:1'
+    for cliente in clientes:
+        send_one_message(cliente[0], msg_end.encode())
+
+    # Verificar o vencedor e imprimir
+    pontuacaoMaxima = max(placar)
+    vencedores = []
+    for i in range(0, num_jogadores):
+
+        if placar[i] == pontuacaoMaxima:
+            vencedores.append(i)
+
+    if len(vencedores) > 1:
+        msg_vencedores = "Houve empate entre os jogadores "
+        for i in vencedores:
+            msg_vencedores += str(i + 1) + ' '
+
+    else:
+        msg_vencedores = f"Jogador {vencedores[0] + 1} foi o vencedor!"
+    for cliente in clientes:
+        send_one_message(cliente[0], msg_vencedores.encode())
+
     serv_socket.close()
 
 

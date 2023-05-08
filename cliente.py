@@ -1,5 +1,11 @@
+import os
 import socket
 import struct
+
+def limpaTela():
+    """ Limpa a tela. """
+
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def leCoordenada(dim):
@@ -76,6 +82,7 @@ dim = recebeDadosNumericos(recv_one_message(client_socket).decode())
 print(f"Dimensão do tabuleiro {dim}\n")
 
 while True:
+    limpaTela()
     vez = recebeDadosNumericos(recv_one_message(client_socket).decode())
 
     status = recv_one_message(client_socket).decode()
@@ -97,7 +104,8 @@ while True:
                 continue
             else:
                 break
-        
+        status = recv_one_message(client_socket).decode()
+        print(f"{status}")
         # segunda peça
         while True:
             while not coordenadas:
@@ -110,16 +118,19 @@ while True:
                 continue
             else:
                 break
+        status = recv_one_message(client_socket).decode()
+        print(f"{status}")
     #Mensagens informando as peças escolhidas 
     print(recv_one_message(client_socket).decode())
     #Mensagens informando se o jogador da vez pontuou
     print(recv_one_message(client_socket).decode())
 
+    fim_de_jogo = recebeDadosNumericos(recv_one_message(client_socket).decode())
 
-
-    if not status:
+    if fim_de_jogo != 0:
         break
 
+print(recv_one_message(client_socket).decode())
+
+
 client_socket.close()
-# client_socket2.close()
-# client_socket3.close()
