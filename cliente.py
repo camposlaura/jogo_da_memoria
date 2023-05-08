@@ -1,6 +1,6 @@
 import os
 import socket
-import struct
+from utils import envia_mensagem, recebe_mensagem
 
 def limpaTela():
     """ Limpa a tela. """
@@ -42,29 +42,6 @@ def recebeDadosNumericos(msg):
     partes = msg.split(':')
     return int(partes[1])
 
-
-# solução para evitar que mais de uma mensagem se mescle com a outra, garante que
-# reciev vai receber numero fixo de dados igual ao do send
-
-def send_one_message(sock, data):
-    length = len(data)
-    sock.sendall(struct.pack('!I', length))
-    sock.sendall(data)
-
-def recv_one_message(sock):
-    lengthbuf = recvall(sock, 4)
-    length, = struct.unpack('!I', lengthbuf)
-    return recvall(sock, length)
-
-def recvall(sock, count):
-    buf = b''
-    while count:
-        newbuf = sock.recv(count)
-        if not newbuf: return None
-        buf += newbuf
-        count -= len(newbuf)
-    return buf
-
 ip = 'localhost'
 port = 10040
 addr = (ip, port)
@@ -72,20 +49,20 @@ client_socket = socket.socket()
 client_socket.connect(addr)
 buffer = []
 
-boas_vindas = recv_one_message(client_socket).decode()
+boas_vindas = recebe_mensagem(client_socket).decode()
 print(f"{boas_vindas}")
 
-num_sequencial = recebeDadosNumericos(recv_one_message(client_socket).decode())
+num_sequencial = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
 coordenadas= False
-
-dim = recebeDadosNumericos(recv_one_message(client_socket).decode())
+print("Aguardando outros jogadores...")
+dim = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
 print(f"Dimensão do tabuleiro {dim}\n")
 
 while True:
     limpaTela()
-    vez = recebeDadosNumericos(recv_one_message(client_socket).decode())
+    vez = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
 
-    status = recv_one_message(client_socket).decode()
+    status = recebe_mensagem(client_socket).decode()
     print(f"{status}")
 
     # Jogada de um jogador
@@ -96,41 +73,42 @@ while True:
             # feita no cliente ao invés do servidor
             while not coordenadas:
                 coordenadas = leCoordenada(dim)
-            send_one_message(client_socket, coordenadas.encode())
+            envia_mensagem(client_socket, coordenadas.encode())
             coordenadas = False
-            peca_valida = recebeDadosNumericos(recv_one_message(client_socket).decode())
+            peca_valida = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
             if peca_valida == 0:
                 print("Escolha uma primeira peça ainda fechada!")
                 continue
             else:
                 break
-        status = recv_one_message(client_socket).decode()
+        status = recebe_mensagem(client_socket).decode()
         print(f"{status}")
         # segunda peça
         while True:
             while not coordenadas:
                 coordenadas = leCoordenada(dim)
-            send_one_message(client_socket, coordenadas.encode())
+            envia_mensagem(client_socket, coordenadas.encode())
             coordenadas= False
-            peca_valida = recebeDadosNumericos(recv_one_message(client_socket).decode())
+            peca_valida = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
             if peca_valida == 0:
                 print("Escolha uma segunda peçaa ainda fechada!")
                 continue
             else:
                 break
-        status = recv_one_message(client_socket).decode()
+        status = recebe_mensagem(client_socket).decode()
         print(f"{status}")
-    #Mensagens informando as peças escolhidas 
-    print(recv_one_message(client_socket).decode())
-    #Mensagens informando se o jogador da vez pontuou
-    print(recv_one_message(client_socket).decode())
 
-    fim_de_jogo = recebeDadosNumericos(recv_one_message(client_socket).decode())
+    #Mensagens informando as peças escolhidas 
+    print(recebe_mensagem(client_socket).decode())
+    #Mensagens informando se o jogador da vez pontuou
+    print(recebe_mensagem(client_socket).decode())
+
+    fim_de_jogo = recebeDadosNumericos(recebe_mensagem(client_socket).decode())
 
     if fim_de_jogo != 0:
         break
 
-print(recv_one_message(client_socket).decode())
+print(recebe_mensagem(client_socket).decode())
 
 
 client_socket.close()
