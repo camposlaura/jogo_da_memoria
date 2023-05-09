@@ -216,7 +216,20 @@ def leCoordenada(coord):
 def main():
     
     # Tamanho (da lateral) do tabuleiro. Necessariamente par e menor que 10!
-    dim = int(input('digite dimensão do tabuleiro'))
+    dimValida = False
+    while not dimValida:
+        limpaTela()
+
+        dim = int(input("\nInsira a dimensão do tabuleiro: "))
+
+        if (dim <= 0) or (dim >= 10) or (dim % 2 != 0):
+            print(
+                "\nA dimensão do tabuleiro deve ser um número par, maior que 0 e menor que 10."
+            )
+            time.sleep(2)
+
+        else:
+            dimValida = True
 
     # Numero de jogadores por tabuleiro
     num_jogadores = int(input('digite numero de jogadores'))
